@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ecomerce', '0001_initial'),
+        ('myapp', 'migrations.0001_initial'),
     ]
 
     operations = [
