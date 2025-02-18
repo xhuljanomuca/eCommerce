@@ -4,24 +4,28 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from .models import Myuser
 
-class UserRegistrationForm(UserCreationForm):
+class UserRegistrationForm(forms.ModelForm):
     email = forms.EmailField(required=True)
     first_name = forms.CharField(required=True)
     last_name = forms.CharField(required=True)
-    password1 = forms.CharField(
-        label='Password',
-        widget=forms.PasswordInput,
-        help_text='Password must be at least 8 characters.'
-    )
-    password2 = forms.CharField(
-        label='Confirm Password',
-        widget=forms.PasswordInput,
-        help_text='Enter the same password as before.'
-    )
+    phone = forms.CharField(required=True)
+    address = forms.CharField(required=True)
+    password = forms.CharField(widget=forms.PasswordInput)
+    confirm_password = forms.CharField(widget=forms.PasswordInput)
 
     class Meta:
-        model = User
-        fields = ['first_name', 'last_name', 'email', 'password1', 'password2']
+        model = Myuser
+        fields = ['first_name', 'last_name', 'email', 'phone', 'address', 'password']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get('password')
+        confirm_password = cleaned_data.get('confirm_password')
+
+        if password != confirm_password:
+            raise forms.ValidationError("Passwords do not match")
+
+        return cleaned_data
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
@@ -29,18 +33,11 @@ class UserRegistrationForm(UserCreationForm):
             raise ValidationError('This email address is already registered. Please use a different email or login.')
         return email
 
-    def clean_password1(self):
-        password1 = self.cleaned_data.get('password1')
-        if len(password1) < 8:
+    def clean_password(self):
+        password = self.cleaned_data.get('password')
+        if len(password) < 8:
             raise ValidationError('Password must be at least 8 characters long.')
-        return password1
-
-    def clean_password2(self):
-        password1 = self.cleaned_data.get('password1')
-        password2 = self.cleaned_data.get('password2')
-        if password1 and password2 and password1 != password2:
-            raise ValidationError('Passwords do not match.')
-        return password2
+        return password
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -50,4 +47,4 @@ class UserRegistrationForm(UserCreationForm):
         user.last_name = self.cleaned_data['last_name']
         if commit:
             user.save()
-        return user 
+        return user

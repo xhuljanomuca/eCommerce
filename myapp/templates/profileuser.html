@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>User Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        /* Profile Image */
+        .profile-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 15px auto;
+            display: block;
+            background-color: #ddd;
+        }
+
+        .user-info {
+            margin-bottom: 20px;
+        }
+
+        .user-info p {
+            font-size: 1.1rem;
+            color: #555;
+            margin: 8px 0;
+        }
+
+        /* Card Form */
+        .card-form {
+            text-align: left;
+        }
+
+        .card-form label {
+            font-weight: 600;
+            display: block;
+            margin: 10px 0 5px;
+            color: #444;
+        }
+
+        .card-form input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .card-form button {
+            width: 100%;
+            background-color: #ff5722;
+            color: white;
+            font-size: 1.2rem;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            font-weight: 600;
+        }
+
+        .card-form button:hover {
+            background-color: #e64a19;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>User Profile</h1>
+        <img src="data:image/jpeg;base64,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" alt="Profile Picture" class="profile-img">
+
+        <div class="user-info">
+            <p><strong>Email:</strong> {{ myuser.email }}</p>
+            <p><strong>First Name:</strong> {{ myuser.first_name }}</p>
+            <p><strong>Last Name:</strong> {{ myuser.last_name }}</p>
+        </div>
+
+        {% if card %}
+        <div class="card-info">
+            <h2>Card Information</h2>
+            <p><strong>Card Number:</strong> **** **** **** {{ card.card_number|slice:"-3:" }}</p>
+            <p><strong>Expiry Date:</strong> {{ card.expiration_date }}</p>
+            <p><strong>CVV:</strong> {{ card.cvv }}</p>
+            <p><strong>Card Holder:</strong> {{ card.cardholder_name }}</p>
+            <p><strong>Amount:</strong> {{ card.amount }}</p>
+        </div>
+        {% else %}
+        <div class="card-form">
+            <h2>Add Card Information</h2>
+            <form method="post" action="{% url 'update_card' %}">
+                {% csrf_token %}
+                
+                <label for="card_number">Card Number</label>
+                <input type="text" id="card_number" name="card_number" placeholder="•••• •••• •••• ••••" required>
+
+                <label for="expiry_date">Expiry Date</label>
+                <input type="date" id="expiry_date" name="expiry_date" required>
+
+                <label for="cvv">CVV</label>
+                <input type="number" id="cvv" name="cvv" placeholder="•••" required>
+
+                <label for="card_holder">Card Holder</label>
+                <input type="text" id="card_holder" name="cardholder_name" required>
+
+                <label for="amount">Amount</label>
+                <input type="number" id="amount" name="amount" required>
+
+                <button type="submit">Add Card</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+</body>
+</html>

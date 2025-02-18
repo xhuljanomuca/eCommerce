@@ -3,9 +3,14 @@ from django.conf import settings
 
 class Myuser(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    phone = models.CharField(max_length=255)
+    first_name = models.CharField(max_length=255, default='Unknown')
+    last_name = models.CharField(max_length=255, default='Unknown')
+    email = models.EmailField(unique=True,default='Unknown')
+    phone = models.CharField(max_length=255, default='Unknown')
     address = models.TextField()
 
+    def __str__(self):
+        return self.user.username
 
 class Category(models.Model):
     name = models.CharField(max_length=255)
@@ -30,8 +35,6 @@ class Product(models.Model):
 
     def __str__(self): 
         return self.name
-
-
 
 class TrendingProduct(models.Model):
     name = models.CharField(max_length=255)
@@ -95,6 +98,7 @@ class Card(models.Model):
     expiration_date = models.DateField()
     cvv = models.CharField(max_length=3)
     cardholder_name = models.CharField(max_length=255)
+    amount = models.DecimalField(max_digits=10, decimal_places=2,default=0)
 
     def __str__(self):
         return self.card_number
