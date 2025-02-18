@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>My E-Commerce Store</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: url('https://static.vecteezy.com/system/resources/previews/045/132/934/non_2x/a-beautiful-picture-of-the-eiffel-tower-in-paris-the-capital-of-france-with-a-wonderful-background-in-wonderful-natural-colors-photo.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        /* Header */
+        header {
+            background-color: rgba(51, 51, 51, 1); /* Fully opaque */
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 3em;
+        }
+
+        /* Category Buttons */
+        .categories {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .categories a {
+            background-color: #ff5722;
+            color: #fff;
+            font-size: 1em;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .categories a:hover {
+            background-color: #e64a19;
+        }
+
+        /* Trending Section */
+        .trending-products {
+            position: relative;
+            overflow: hidden;
+            padding: 50px 0;
+        }
+
+        .trending-products h2 {
+            text-align: center;
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .slider {
+            display: flex;
+            animation: slide 20s linear infinite; /* Slowed down to 30s */
+            justify-content: space-between;
+            margin: 0 auto;
+            max-width: 1200px;
+            padding: 0 20px;
+        }
+
+        .slider .product {
+            flex: 0 0 20%;
+            text-align: center;
+            background-color: rgba(238, 238, 238, 1); /* Fully opaque */
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .slider .product:hover {
+            transform: scale(1.05);
+        }
+
+        .slider img {
+            width: 100%;
+            border-radius: 8px;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .slider h3 {
+            font-size: 1em;
+            margin-top: 10px;
+        }
+
+        /* Normal Products Section */
+        .category-section {
+            padding: 50px 20px;
+        }
+
+        .category-section h2 {
+            text-align: center;
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .product-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .product {
+            text-align: center;
+            background-color: rgba(249, 249, 249, 1); /* Fully opaque */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .product:hover {
+            transform: scale(1.05);
+        }
+
+        .product img {
+            width: 100%;
+            border-radius: 8px;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .product h3 {
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+
+        .product a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .add-to-cart-btn {
+            background-color: #ff5722;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .add-to-cart-btn:hover {
+            background-color: #e64a19;
+        }
+
+        /* Footer */
+        footer {
+            background-color: rgba(51, 51, 51, 1); /* Fully opaque */
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+
+        /* Animation */
+        @keyframes slide {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+    </style>
+    {% load static %}
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header>
+        <h1>My E-Commerce Store</h1>
+    </header>
+
+    <!-- Category Buttons -->
+    <div class="categories">
+        <a href="{% url 'home' %}">All</a>
+        {% for category in categories %}
+        <a href="{% url 'home' %}?category_id={{ category.id }}">{{ category.name }}</a>
+        {% endfor %}
+    </div>
+    
+    <!-- Trending Products Section -->
+    {% if not selected_category %}
+    <section class="trending-products">
+        <h2>Trending Products</h2>
+        <div class="slider">
+            {% for trending_product in trending_products %}
+            <div class="product" data-category="{{ trending_product.category.id }}">
+                <a href="{% url 'trending_product_detail' trending_product.id %}">
+                    <img src="{{ trending_product.photo.image.url }}" alt="{{ trending_product.name }}">
+                    <h3>{{ trending_product.name }}</h3>
+                    <h3>{{ trending_product.price }}</h3>
+                </a>
+                <form method="post" action="{% url 'add_to_cart' trending_product.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="add-to-cart-btn">
+                        Add to Cart
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Category Sections -->
+    {% if selected_category %}
+    <section class="category-section">
+        <h2>{{ selected_category.name }}</h2>
+        <div class="product-list">
+            {% for product in products %}
+                <div class="product">
+                    <a href="{% url 'product_detail' product.id %}">
+                        <img src="{{ product.photo.image.url }}" alt="{{ product.name }}">
+                        <h3>{{ product.name }}</h3>
+                        <h3>Price {{ product.price }}</h3>
+                    </a>
+                    <form method="post" action="{% url 'product_create' product.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="add-to-cart-btn">
+                            Add to Cart
+                        </button>
+                    </form>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% else %}
+    {% for category in categories %}
+    <section class="category-section">
+        <h2>{{ category.name }}</h2>
+        <div class="product-list">
+            {% for product in products %}
+                {% if product.category.id == category.id %}
+                <div class="product">
+                    <a href="{% url 'product_detail' product.id %}">
+                        <img src="{{ product.photo.image.url }}" alt="{{ product.name }}">
+                        <h3>{{ product.name }}</h3>
+                        <h3>Price {{ product.price }}</h3>
+                    </a>
+                    <form method="post" action="{% url 'product_create' product.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="add-to-cart-btn">
+                            Add to Cart
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </section>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Footer Section -->
+    <footer>
+        <p>&copy; 2025 My E-Commerce Store</p>
+    </footer>
+
+</body>
+</html>
