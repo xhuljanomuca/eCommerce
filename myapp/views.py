@@ -5,13 +5,13 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import MyUser
+from .models import Myuser
 from .forms import UserRegistrationForm
 from django.contrib.auth.models import User
 
 @login_required
 def user(request):
-    users = MyUser.objects.all()
+    users = Myuser.objects.all()
     return render(request, 'user.html', {'users': users})
 
 def register(request):
@@ -28,7 +28,7 @@ def register(request):
                 # Create the user
                 user = form.save()
                 # Create MyUser profile
-                MyUser.objects.create(user=user)
+                Myuser.objects.create(user=user)
                 # Log the user in
                 login(request, user)
                 return redirect('user')
