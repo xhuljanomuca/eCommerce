@@ -1,0 +1,13 @@
+venv
+__pycache__
+.vscode
+.DS_Store
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+bin/
+build/
+myapp/__pycache__
+myproject/__pycache__
