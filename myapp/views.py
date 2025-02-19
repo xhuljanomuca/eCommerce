@@ -159,7 +159,6 @@ def edit_product(request, product_id):
     return render(request, 'edit_product.html', {'form': form})
 
 
-
 @login_required
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
