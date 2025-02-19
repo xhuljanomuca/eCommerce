@@ -28,7 +28,11 @@
         </tbody>
     </table>
     <p class="fw-bold">Total: ${{ total_price }}</p>
-    <a href="{% url 'checkout' %}" class="btn btn-primary">Proceed to Checkout</a>
+    <form method="POST" action="{% url 'checkout' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Proceed to Checkout</button>
+    </form>
+    
     {% else %}
     <div class="alert alert-warning text-center">
         Your cart is empty. <a href="{% url 'dashboard' %}" class="alert-link">Browse Products</a>

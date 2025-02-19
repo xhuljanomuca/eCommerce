@@ -9,6 +9,7 @@
             <p><strong>Email:</strong> {{ myuser.email }}</p>
             <p><strong>First Name:</strong> {{ myuser.first_name }}</p>
             <p><strong>Last Name:</strong> {{ myuser.last_name }}</p>
+            <p><strong>Available Funds:</strong> ${{ myuser.funds|floatformat:2 }}</p>
         </div>
 
         {% if card %}
@@ -18,8 +19,10 @@
             <p><strong>Expiry Date:</strong> {{ card.expiration_date }}</p>
             <p><strong>CVV:</strong> {{ card.cvv }}</p>
             <p><strong>Card Holder:</strong> {{ card.cardholder_name }}</p>
-            <p><strong>Amount:</strong> {{ card.amount }}</p>
+            <p><strong>Amount:</strong> ${{ card.amount|floatformat:2 }}</p>
         </div>
+        <a href="{% url 'add_funds' %}" class="btn btn-success">Add Funds</a>
+        <a href="{% url 'update_card' %}" class="btn btn-primary">Update Card Information</a>
         {% else %}
         <div class="card-form">
             <h2>Add Card Information</h2>
@@ -43,6 +46,7 @@
 
                 <button type="submit">Add Card</button>
             </form>
+            <a href="{% url 'profile' %}" class="btn btn-cancel">Cancel</a>
         </div>
         {% endif %}
     </div>

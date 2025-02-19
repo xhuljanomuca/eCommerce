@@ -5,6 +5,7 @@ from django.contrib import messages
 from .models import Myuser, Product, TrendingProduct, House, Car, Category, Order, Photo, Cart, Card, Transaction, ProductReview
 from .forms import UserRegistrationForm, ProductForm, Product, ReviewForm
 from django.contrib.auth.models import User
+from decimal import Decimal
 
 
 @login_required
@@ -172,8 +173,18 @@ def add_to_cart(request, product_id):
 
 @login_required
 def remove_from_cart(request, cart_id):
-    cart_item = Cart.objects.get(id=cart_id, user=request.user)
-    cart_item.delete()
+    cart_item = get_object_or_404(Cart, id=cart_id, user=request.user)
+
+    # Decrease quantity by 1
+    if cart_item.quantity > 1:
+        cart_item.quantity -= 1
+        cart_item.save()
+        messages.success(request, f"One {cart_item.product.name} removed from cart. {cart_item.quantity} left.")
+    else:
+        # If quantity is 1, remove the item completely
+        cart_item.delete()
+        messages.success(request, f"{cart_item.product.name} removed from cart.")
+
     return redirect('cart')
 
 
@@ -190,7 +201,7 @@ logger = logging.getLogger(__name__)
 @login_required
 def profile_user(request):
     logger.info(f"Request user: {request.user} (Type: {type(request.user)})")
-    myuser = Myuser.objects.get(user=request.user)
+    myuser, created = Myuser.objects.get_or_create(user=request.user)
     
     # Fetch user's card details
     card = Card.objects.filter(user=request.user).first()
@@ -209,49 +220,99 @@ def profile_user(request):
         cart_item.save()
 
         messages.success(request, 'Cart updated successfully.')
-        return redirect('profile_user')
+        return redirect('profile')
 
     return render(request, 'profile_user.html', {'myuser': myuser, 'card': card})
 
 
+import logging
+logger = logging.getLogger(__name__)
 
 @login_required
 def checkout(request):
+    logger.info("Checkout function called.")
+
     user_profile = request.user.myuser
     cart_items = Cart.objects.filter(user=request.user)
+
+    if not cart_items.exists():
+        messages.error(request, "Your cart is empty.")
+        logger.warning("Checkout failed: Cart is empty.")
+        return redirect('cart')
+
     total_price = sum(item.product.price * item.quantity for item in cart_items)
 
     if user_profile.funds < total_price:
-        messages.error(request, "Insufficient funds!")
+        messages.error(request, "Insufficient funds! Please add more funds.")
+        logger.warning("Checkout failed: Insufficient funds.")
         return redirect('cart')
 
-    # Deduct funds from buyer
+    buyer_card = Card.objects.filter(user=request.user).first()
+    if not buyer_card:
+        messages.error(request, "You must have a card added to checkout.")
+        return redirect('profile')
+
     user_profile.funds -= total_price
     user_profile.save()
+    logger.info(f"Funds deducted. New balance: {user_profile.funds}")
 
-    # Transfer funds and mark products as sold
     for item in cart_items:
+        if item.product.is_sold:
+            messages.error(request, f"{item.product.name} is already sold.")
+            logger.warning(f"Product {item.product.name} is already sold.")
+            return redirect('profile')
+
+        # Mark the product as sold
         item.product.is_sold = True
         item.product.save()
+        logger.info(f"Marked product {item.product.name} as sold.")
 
         # Transfer funds to the seller
         seller_profile = item.product.seller.myuser
         seller_profile.funds += item.product.price * item.quantity
         seller_profile.save()
+        logger.info(f"Transferred ${item.product.price * item.quantity} to seller {seller_profile.user.username}.")
 
-        # Create transaction log
         Transaction.objects.create(
             buyer=request.user,
             seller=item.product.seller,
             product=item.product,
-            amount=item.product.price * item.quantity
+            card=buyer_card,
+            quantity=item.quantity,
+            total_price=item.product.price * item.quantity
         )
 
-        item.delete()  # Remove item from cart after purchase
+    Cart.objects.filter(user=request.user).delete()
+    logger.info("All cart items deleted.")
 
-    messages.success(request, "Purchase successful!")
-    return redirect('dashboard')
+    messages.success(request, "Purchase successful! Your funds have been deducted, and the seller has been credited.")
 
+    logger.info("Redirecting to profile_user.")
+    return redirect('profile')
+
+
+
+@login_required
+def add_funds(request):
+    myuser = Myuser.objects.get(user=request.user)
+
+    if request.method == 'POST':
+        amount = request.POST.get('amount')
+
+        try:
+            amount = Decimal(amount)
+            if amount > 0:
+                myuser.funds += amount  # Add funds to user's account
+                myuser.save()
+                messages.success(request, f'Funds added successfully! Your new balance is ${myuser.funds}.')
+            else:
+                messages.error(request, 'Invalid amount. Please enter a positive number.')
+        except ValueError:
+            messages.error(request, 'Invalid input. Please enter a valid amount.')
+
+        return redirect('profile')  # Redirect to profile after adding funds
+
+    return render(request, 'add_funds.html', {'myuser': myuser})
 
 
 @login_required
