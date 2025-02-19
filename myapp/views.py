@@ -163,10 +163,20 @@ def edit_product(request, product_id):
 @login_required
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    cart_item, created = Cart.objects.get_or_create(user=request.user, product=product, defaults={'quantity': 1, 'card': None})
+
+    if product.seller == request.user:
+        messages.error(request, "You cannot add your own product to the cart.")
+        return redirect('dashboard')
+
+    cart_item, created = Cart.objects.get_or_create(
+        user=request.user,
+        product=product,
+        defaults={'quantity': 1, 'card': None}
+    )
     if not created:
         cart_item.quantity += 1
         cart_item.save()
+
     messages.success(request, f"{product.name} added to cart!")
     return redirect('cart')
 
@@ -232,7 +242,7 @@ logger = logging.getLogger(__name__)
 def checkout(request):
     logger.info("Checkout function called.")
 
-    user_profile = request.user.myuser
+    user_profile = request.user.myuser  # Get the buyer's profile
     cart_items = Cart.objects.filter(user=request.user)
 
     if not cart_items.exists():
@@ -242,19 +252,22 @@ def checkout(request):
 
     total_price = sum(item.product.price * item.quantity for item in cart_items)
 
+    # Check if the user has enough funds
     if user_profile.funds < total_price:
         messages.error(request, "Insufficient funds! Please add more funds.")
         logger.warning("Checkout failed: Insufficient funds.")
         return redirect('cart')
 
+    # Ensure the buyer has a card
     buyer_card = Card.objects.filter(user=request.user).first()
     if not buyer_card:
         messages.error(request, "You must have a card added to checkout.")
         return redirect('profile')
 
+    # Deduct funds from the buyer
     user_profile.funds -= total_price
     user_profile.save()
-    logger.info(f"Funds deducted. New balance: {user_profile.funds}")
+    logger.info(f"Funds deducted from {user_profile.user.username}. New balance: {user_profile.funds}")
 
     for item in cart_items:
         if item.product.is_sold:
@@ -267,22 +280,27 @@ def checkout(request):
         item.product.save()
         logger.info(f"Marked product {item.product.name} as sold.")
 
-        # Transfer funds to the seller
-        seller_profile = item.product.seller.myuser
+        # Get the seller's profile
+        seller = item.product.seller
+        seller_profile, created = Myuser.objects.get_or_create(user=seller)
+
+        # Ensure the seller's funds increase
         seller_profile.funds += item.product.price * item.quantity
         seller_profile.save()
-        logger.info(f"Transferred ${item.product.price * item.quantity} to seller {seller_profile.user.username}.")
+        logger.info(f"Transferred ${item.product.price * item.quantity} to {seller_profile.user.username}. New balance: {seller_profile.funds}")
 
+        # Log the transaction
         Transaction.objects.create(
             buyer=request.user,
-            seller=item.product.seller,
+            seller=seller,  # Seller object
             product=item.product,
             card=buyer_card,
             quantity=item.quantity,
             total_price=item.product.price * item.quantity
         )
 
-    Cart.objects.filter(user=request.user).delete()
+    # Clear the cart after successful checkout
+    cart_items.delete()
     logger.info("All cart items deleted.")
 
     messages.success(request, "Purchase successful! Your funds have been deducted, and the seller has been credited.")

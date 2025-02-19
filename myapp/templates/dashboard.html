@@ -11,7 +11,7 @@
     </header>
 
     <div class="container mt-4">
-        <h2 class="text-center">Welcome to Shpejt, Mir, Lir</h2>
+        <h2 class="text-center">Welcome to Shpejt, Mire, Lire</h2>
     
         <!-- Category Buttons -->
         <div class="text-center mb-4">
@@ -36,10 +36,19 @@
                         <p class="card-text">{{ product.description }}</p>
                         <p class="fw-bold">Price: ${{ product.price }}</p>
                         <a href="{% url 'product_detail' product.id %}" class="btn btn-primary">View Details</a>
-                        <a href="{% url 'edit_product' product.id %}" class="btn btn-primary">Edit Product</a>
+                        {% if product.seller == request.user %}
+                            <!-- Disable Edit Product Button if not the seller -->
+                            <a href="{% url 'edit_product' product.id %}" class="btn btn-primary">Edit Product</a>
+                        {% else %}
+                            <a href="{% url 'edit_product' product.id %}" class="btn btn-secondary" disabled>Not Allowed to Edit</a>
+                        {% endif %}
                         <form method="post" action="{% url 'add_to_cart' product.id %}" class="mt-2">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-warning">Add to Cart</button>
+                            {% if product.seller == request.user %}
+                                <button type="submit" class="btn btn-secondary" disabled>Added by You</button>
+                            {% else %}
+                                <button type="submit" class="btn btn-warning">Add to Cart</button>
+                            {% endif %}
                         </form>
                     </div>
                 </div>
