@@ -170,40 +170,85 @@
         <h1>{{ product.name }}</h1>
     </header>
 
-    <!-- Product Detail Section -->
-    <section class="product-detail">
-        <img src="{{ product.photo.image.url }}" alt="{{ product.name }}">
-        <div class="info">
-            <h2>{{ product.name }}</h2>
-            <p>{{ product.description }}</p>
-            <p class="price">Price: ${{ product.price }}</p>
-            <p class="category">Category: {{ product.category.name }}</p>
-            <p class="quantity">Quantity available: {{ product.quantity }}</p>
-            <button class="buy-btn">Add to Cart</button>
+    <div class="container mt-5">
+        <div class="row">
+            <!-- Product Images -->
+            <div class="col-md-6">
+                <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        {% for photo in product.photo_set.all %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                <img src="{{ photo.image.url }}" class="d-block w-100" alt="{{ product.name }}">
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Product Info -->
+            <div class="col-md-6">
+                <h2>{{ product.name }}</h2>
+                <p>{{ product.description }}</p>
+                <p class="text-muted">Category: {{ product.category.name }}</p>
+                <p class="fw-bold text-danger">Price: ${{ product.price }}</p>
+                <p>Quantity Available: {{ product.quantity }}</p>
+
+                <!-- Add to Cart Form -->
+                <form method="post" action="{% url 'add_to_cart' product.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">Add to Cart</button>
+                </form>
+            </div>
         </div>
-    </section>
 
-    <!-- Review Section -->
-    <section class="review-section">
-        <h3>Customer Reviews</h3>
-        
-        <!-- Display existing reviews -->
-        <div class="reviews">
-            <!-- Example reviews -->
-            <p><strong>John Doe:</strong> Amazing product! I love it. Highly recommended!</p>
-            <p><strong>Jane Smith:</strong> Good quality, but the price is a bit high. Still, worth it!</p>
+        <!-- Reviews Section -->
+        <div class="mt-5">
+            <h3>Customer Reviews</h3>
+            {% if reviews %}
+                {% for review in reviews %}
+                    <div class="card my-3">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ review.user.username }}</h5>
+                            <p class="card-text">{{ review.review }}</p>
+                            <p class="text-muted">Rating: {{ review.rating }}/5</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No reviews yet. Be the first to leave one!</p>
+            {% endif %}
+
+            <!-- Review Form -->
+            {% if user.is_authenticated %}
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h4>Leave a Review</h4>
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label">Your Review</label>
+                                {{ form.review }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Rating (1-5)</label>
+                                {{ form.rating }}
+                            </div>
+                            <button type="submit" class="btn btn-success">Submit Review</button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <p><a href="{% url 'login' %}">Log in</a> to leave a review.</p>
+            {% endif %}
         </div>
-
-        <!-- Review Form -->
-        <form class="review-form">
-            <h4>Leave a Review</h4>
-            <input type="text" name="name" placeholder="Your Name" required>
-            <textarea name="review" rows="5" placeholder="Your Review" required></textarea>
-            <button type="submit">Submit Review</button>
-        </form>
-    </section>
-
- 
-
+    </div>
 </body>
 </html>

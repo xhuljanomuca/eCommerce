@@ -12,11 +12,16 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('home/', views.dashboard, name='dashboard'),
     path('product/<int:product_id>/', views.product_detail, name='product_detail'),
+    path('product/add/', views.product_create, name='product_create'),
+    path('product/edit/<int:product_id>/', views.edit_product, name='edit_product'),
     path('trending_product/<int:product_id>/', views.trending_product_detail, name='trending_product_detail'),
-    path('add_to_cart/<int:product_id>/', views.product_create, name='add_to_cart'),
-    #path('add_to_cart/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
+    path('cart/', views.view_cart, name='cart'),
+    path('cart/add/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
+    path('cart/remove/<int:cart_id>/', views.remove_from_cart, name='remove_from_cart'),
     path('profile/', views.profile_user, name='profile_user'),
     path('update_card/', views.update_card, name='update_card'),
+    path('checkout/', views.checkout, name='checkout'),
+
 ]
 
 if settings.DEBUG:

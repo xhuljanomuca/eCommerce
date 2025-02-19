@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-3 text-center">Edit Product</h2>
+
+    {% if product.is_sold %}
+    <div class="alert alert-warning text-center">
+        This product has already been sold and cannot be edited.
+    </div>
+    {% else %}
+    <div class="card p-4 shadow-lg">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Product Name</label>
+                {{ form.name }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                {{ form.description }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Price</label>
+                {{ form.price }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Category</label>
+                {{ form.category }}
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Save Changes</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

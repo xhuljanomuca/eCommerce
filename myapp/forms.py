@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from .models import Myuser
+from .models import Myuser, Product, Photo, ProductReview, Category
 
 class UserRegistrationForm(forms.ModelForm):
     email = forms.EmailField(required=True)
@@ -48,3 +48,29 @@ class UserRegistrationForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+    
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = ['name', 'description', 'price', 'category']
+
+    category = forms.ModelChoiceField(
+    queryset=Category.objects.all(),
+    empty_label="Select a Category",
+    widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = ProductReview
+        fields = ['review', 'rating']
+        widgets = {
+            'review': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'rating': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 5}),
+        }
+
+# Image Upload Form (for multiple images)
+class Photo(forms.ModelForm):
+    class Meta:
+        model = Photo
+        fields = ['image']

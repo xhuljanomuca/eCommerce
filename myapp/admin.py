@@ -1,11 +1,12 @@
 from django.contrib import admin
-from myapp.models import Myuser, Category, Product, TrendingProduct, ProductReview, Car, House, Order, Photo, Cart, Card
+from myapp.models import Myuser, Category, Product, TrendingProduct, ProductReview, Car, House, Order, Photo, Cart, Card, Transaction
 # Register your models here.
 admin.site.register(Myuser)
 admin.site.register(Category)
 admin.site.register(Product)
 admin.site.register(TrendingProduct)
 admin.site.register(ProductReview)
+admin.site.register(Transaction)
 admin.site.register(Car)
 admin.site.register(House)
 admin.site.register(Order)

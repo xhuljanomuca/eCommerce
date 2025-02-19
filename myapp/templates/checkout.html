@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-3 text-center">Checkout</h2>
+
+    {% if error %}
+    <div class="alert alert-danger text-center">{{ error }}</div>
+    {% endif %}
+
+    <div class="card p-4 shadow-lg">
+        <h4 class="fw-bold">Order Summary</h4>
+        <p><strong>Your Balance:</strong> ${{ user_profile.funds }}</p>
+        <p><strong>Total Amount:</strong> ${{ total_price }}</p>
+
+        {% if user_profile.funds >= total_price %}
+        <form action="{% url 'checkout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success w-100">Confirm Purchase</button>
+        </form>
+        {% else %}
+        <div class="text-center">
+            <p class="text-danger">Insufficient funds. Please add more funds to complete the purchase.</p>
+            <a href="{% url 'add_funds' %}" class="btn btn-primary">Add Funds</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
