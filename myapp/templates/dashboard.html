@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
     <!-- Header Section -->
     <header>
         <img src="https://files.oaiusercontent.com/file-XwiNyMnU8NsHMTEn4dkRNJ?se=2025-02-18T22%3A25%3A31Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D604800%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3Dea1848fa-f17f-4d13-9657-6def7bd8ea59.webp&sig=oGB%2B/H%2BCsAZLtLkAg34tFskJXCF9ziJQNT32H0KQpWs%3D" alt="Logo" class="logo" width="100px" height="70px" >
-        <h1>Shpejt,mir,lir.al</h1>
+        <h1>Shpejt, mire, lire .al</h1>
         <a href="{% url 'profile' %}">
             <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ-a-TsxH9PktJwB8farsqn2EOlcsO9ODhp_Q&s" alt="user" width="50px" height="50px">
         </a>
@@ -30,22 +31,29 @@
             {% for product in products %}
             <div class="col-md-4 mb-4">
                 <div class="card h-100 shadow-sm">
-                    <img src="{{ product.photo.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                    {% if product.photo %}
+                        <img src="{{ product.photo.url }}" class="card-img-top" alt="{{ product.name }}">
+                    {% else %}
+                        <img src="{% static 'default-product.jpeg' %}" class="card-img-top" alt="No Image Available">
+                    {% endif %}
                     <div class="card-body">
                         <h5 class="card-title">{{ product.name }}</h5>
                         <p class="card-text">{{ product.description }}</p>
                         <p class="fw-bold">Price: ${{ product.price }}</p>
+                        <p class="fw-bold">Product Sold: {{ product.is_sold }}</p>
                         <a href="{% url 'product_detail' product.id %}" class="btn btn-primary">View Details</a>
                         {% if product.seller == request.user %}
                             <!-- Disable Edit Product Button if not the seller -->
                             <a href="{% url 'edit_product' product.id %}" class="btn btn-primary">Edit Product</a>
                         {% else %}
-                            <a href="{% url 'edit_product' product.id %}" class="btn btn-secondary" disabled>Not Allowed to Edit</a>
+                            <a href="{% url 'dashboard' %}" class="btn btn-secondary" disabled>Not Allowed to Edit</a>
                         {% endif %}
                         <form method="post" action="{% url 'add_to_cart' product.id %}" class="mt-2">
                             {% csrf_token %}
                             {% if product.seller == request.user %}
                                 <button type="submit" class="btn btn-secondary" disabled>Added by You</button>
+                            {% elif product.is_sold %}
+                                <button type="submit" class="btn btn-secondary" disabled>Sold</button>
                             {% else %}
                                 <button type="submit" class="btn btn-warning">Add to Cart</button>
                             {% endif %}

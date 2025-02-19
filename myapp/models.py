@@ -35,6 +35,7 @@ class Product(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    photo = models.ImageField(upload_to='photos/', null=True, blank=True)
     #photo = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name='product_photos', null=True, blank=True)
     seller = models.ForeignKey(User, on_delete=models.CASCADE)
     is_sold = models.BooleanField(default=False)

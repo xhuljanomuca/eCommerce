@@ -35,12 +35,17 @@
                 <p>{{ product.description }}</p>
                 <p class="text-muted">Category: {{ product.category.name }}</p>
                 <p class="fw-bold text-danger">Price: ${{ product.price }}</p>
+                <p>Product Sold: {{ product.is_sold }}</p>
                 <p>Quantity Available: {{ product.quantity }}</p>
 
                 <!-- Add to Cart Form -->
-                <form method="post" action="{% url 'add_to_cart' product.id %}">
+                <form method="post" action="{% url 'add_to_cart' product.id %}" class="mt-2">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-primary">Add to Cart</button>
+                    {% if product.seller == request.user %}
+                        <button type="submit" class="btn btn-secondary" disabled>Added by You</button>
+                    {% else %}
+                        <button type="submit" class="btn btn-warning">Add to Cart</button>
+                    {% endif %}
                 </form>
             </div>
         </div>

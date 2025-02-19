@@ -285,7 +285,7 @@ def checkout(request):
         seller_profile, created = Myuser.objects.get_or_create(user=seller)
 
         # Ensure the seller's funds increase
-        seller_profile.funds += item.product.price * item.quantity
+        seller_profile.funds += total_price
         seller_profile.save()
         logger.info(f"Transferred ${item.product.price * item.quantity} to {seller_profile.user.username}. New balance: {seller_profile.funds}")
 
