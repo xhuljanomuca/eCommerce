@@ -3,8 +3,14 @@ from django.conf import settings
 
 class Myuser(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    phone = models.CharField(max_length=255)
+    first_name = models.CharField(max_length=255, default='Unknown')
+    last_name = models.CharField(max_length=255, default='Unknown')
+    email = models.EmailField(unique=True,default='Unknown')
+    phone = models.CharField(max_length=255, default='Unknown')
     address = models.TextField()
+
+    def __str__(self):
+        return self.user.username
 
 class Category(models.Model):
     name = models.CharField(max_length=255)
@@ -24,10 +30,11 @@ class Product(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    quanity = models.IntegerField()
+    photo = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name='product_photos', default=1)
+    quantity = models.IntegerField()
 
     def __str__(self): 
-            return self.name
+        return self.name
 
 class TrendingProduct(models.Model):
     name = models.CharField(max_length=255)
@@ -39,10 +46,6 @@ class TrendingProduct(models.Model):
 
     def __str__(self):
         return self.name
-
-class ProductImage(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='product_images/')
 
 class ProductReview(models.Model):
     user = models.ForeignKey(Myuser, on_delete=models.CASCADE)
@@ -61,10 +64,9 @@ class Car(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     photo = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name='car_photos', default=1)
 
-
     def __str__(self):
         return self.title
-
+    
 class House(models.Model):
     address = models.CharField(max_length=255)
     city = models.CharField(max_length=100, default='Unknown')
@@ -79,7 +81,7 @@ class House(models.Model):
 
     def __str__(self):
         return self.title
-
+    
 class Order(models.Model):
     user = models.ForeignKey(Myuser, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -89,13 +91,14 @@ class Order(models.Model):
 
     def __str__(self):  
         return self.product.name
-
+    
 class Card(models.Model):
     user = models.ForeignKey(Myuser, on_delete=models.CASCADE)
     card_number = models.CharField(max_length=16)
     expiration_date = models.DateField()
     cvv = models.CharField(max_length=3)
     cardholder_name = models.CharField(max_length=255)
+    amount = models.DecimalField(max_digits=10, decimal_places=2,default=0)
 
     def __str__(self):
         return self.card_number
