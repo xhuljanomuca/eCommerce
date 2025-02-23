@@ -4,10 +4,10 @@
 {% block content %}
     <!-- Header Section -->
     <header>
-        <img src="https://files.oaiusercontent.com/file-XwiNyMnU8NsHMTEn4dkRNJ?se=2025-02-18T22%3A25%3A31Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D604800%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3Dea1848fa-f17f-4d13-9657-6def7bd8ea59.webp&sig=oGB%2B/H%2BCsAZLtLkAg34tFskJXCF9ziJQNT32H0KQpWs%3D" alt="Logo" class="logo" width="100px" height="70px" >
+        <img src="{% static 'images/logo.webp' %}" alt="Logo" class="logo" width="100px" height="70px" >
         <h1>Shpejt, mire, lire .al</h1>
         <a href="{% url 'profile' %}">
-            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ-a-TsxH9PktJwB8farsqn2EOlcsO9ODhp_Q&s" alt="user" width="50px" height="50px">
+            <img src="{% static 'images/logo.webp' %}" alt="user" width="50px" height="50px">
         </a>
     </header>
 
@@ -34,7 +34,7 @@
                     {% if product.photo %}
                         <img src="{{ product.photo.url }}" class="card-img-top" alt="{{ product.name }}">
                     {% else %}
-                        <img src="{% static 'default-product.jpeg' %}" class="card-img-top" alt="No Image Available">
+                        <img src="{% static 'images/logo.webp' %}" class="card-img-top" alt="No Image Available">
                     {% endif %}
                     <div class="card-body">
                         <h5 class="card-title">{{ product.name }}</h5>

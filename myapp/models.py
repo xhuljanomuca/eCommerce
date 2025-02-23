@@ -39,7 +39,7 @@ class Product(models.Model):
     #photo = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name='product_photos', null=True, blank=True)
     seller = models.ForeignKey(User, on_delete=models.CASCADE)
     is_sold = models.BooleanField(default=False)
-    #quantity = models.IntegerField()
+    quantity = models.IntegerField()
 
     def __str__(self): 
         return self.name

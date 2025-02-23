@@ -6,6 +6,7 @@ from .models import Myuser, Product, TrendingProduct, House, Car, Category, Orde
 from .forms import UserRegistrationForm, ProductForm, Product, ReviewForm
 from django.contrib.auth.models import User
 from decimal import Decimal
+from django.db import transaction
 
 
 @login_required
@@ -114,7 +115,7 @@ def product_create(request):
         files = request.FILES.getlist('images')
 
         if form.is_valid():
-            product = form.save(commit=False)  # Don't save yet
+            product = form.save(commit=False)
             
             # Ensure the category exists
             if not product.category:
@@ -124,7 +125,7 @@ def product_create(request):
             # Assign the logged-in user as the seller
             product.seller = request.user  
 
-            # Now save the product
+            #save the product
             product.save()
 
             # Save images
@@ -164,6 +165,10 @@ def edit_product(request, product_id):
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
 
+    if product.is_sold or product.quantity <= 0:
+        messages.error(request, "This product is sold out!")
+        return redirect('dashboard')
+
     if product.seller == request.user:
         messages.error(request, "You cannot add your own product to the cart.")
         return redirect('dashboard')
@@ -174,8 +179,11 @@ def add_to_cart(request, product_id):
         defaults={'quantity': 1, 'card': None}
     )
     if not created:
-        cart_item.quantity += 1
-        cart_item.save()
+        if cart_item.quantity < product.quantity:  # Prevent exceeding available stock
+            cart_item.quantity += 1
+            cart_item.save()
+        else:
+            messages.error(request, "You can't add more than available stock.")
 
     messages.success(request, f"{product.name} added to cart!")
     return redirect('cart')
@@ -184,10 +192,13 @@ def add_to_cart(request, product_id):
 @login_required
 def remove_from_cart(request, cart_id):
     cart_item = get_object_or_404(Cart, id=cart_id, user=request.user)
+    product_id = cart_item.product.id
+    product = get_object_or_404(Product, id=product_id)
 
     # Decrease quantity by 1
     if cart_item.quantity > 1:
         cart_item.quantity -= 1
+        #product.quantity += 1
         cart_item.save()
         messages.success(request, f"One {cart_item.product.name} removed from cart. {cart_item.quantity} left.")
     else:
@@ -270,38 +281,78 @@ def checkout(request):
     logger.info(f"Funds deducted from {user_profile.user.username}. New balance: {user_profile.funds}")
 
     for item in cart_items:
-        if item.product.is_sold:
-            messages.error(request, f"{item.product.name} is already sold.")
-            logger.warning(f"Product {item.product.name} is already sold.")
-            return redirect('profile')
+        product = item.product  # Get product instance
 
-        # Mark the product as sold
-        item.product.is_sold = True
-        item.product.save()
-        logger.info(f"Marked product {item.product.name} as sold.")
+        try:
+            with transaction.atomic():  # Ensure atomic database transactions
+                # Deduct funds from the buyer
+                logger.info(f"Before deduction - Buyer {user_profile.user.username} funds: {user_profile.funds}")
+                user_profile.funds -= total_price
+                user_profile.save()
+                logger.info(f"After deduction - Buyer {user_profile.user.username} funds: {user_profile.funds}")
 
-        # Get the seller's profile
-        seller = item.product.seller
-        seller_profile, created = Myuser.objects.get_or_create(user=seller)
+                for item in cart_items:
+                    product = item.product  # Get product instance
 
-        # Ensure the seller's funds increase
-        seller_profile.funds += total_price
-        seller_profile.save()
-        logger.info(f"Transferred ${item.product.price * item.quantity} to {seller_profile.user.username}. New balance: {seller_profile.funds}")
+                    if product.is_sold:
+                        messages.error(request, f"{product.name} is already sold.")
+                        logger.warning(f"Product {product.name} is already sold.")
+                        return redirect('profile')
 
-        # Log the transaction
-        Transaction.objects.create(
-            buyer=request.user,
-            seller=seller,  # Seller object
-            product=item.product,
-            card=buyer_card,
-            quantity=item.quantity,
-            total_price=item.product.price * item.quantity
-        )
+                    # Decrease product quantity
+                    if product.quantity >= item.quantity:
+                        product.quantity -= item.quantity
+                    else:
+                        messages.error(request, f"Not enough stock for {product.name}.")
+                        return redirect('cart')
 
-    # Clear the cart after successful checkout
-    cart_items.delete()
-    logger.info("All cart items deleted.")
+                    # If quantity reaches 0, mark as sold
+                    if product.quantity == 0:
+                        product.is_sold = True
+
+                    product.save()
+                    logger.info(f"Updated product {product.name}: Quantity {product.quantity}, Sold: {product.is_sold}")
+
+                    # Get the seller's profile
+                    seller = product.seller
+                    seller_profile = Myuser.objects.filter(user=seller).first()
+                    
+                    if not seller_profile:
+                        messages.error(request, "Error: Seller profile not found!")
+                        logger.error(f"Seller profile missing for {seller.username}.")
+                        return redirect('cart')
+
+                    # Log seller funds before update
+                    logger.info(f"Before transfer - Seller {seller_profile.user.username} funds: {seller_profile.funds}")
+
+                    # Increase seller's funds
+                    seller_profile.funds += item.product.price * item.quantity
+                    seller_profile.save()
+
+                    # Log seller funds after update
+                    logger.info(f"After transfer - Seller {seller_profile.user.username} funds: {seller_profile.funds}")
+
+                    # Log the transaction
+                    Transaction.objects.create(
+                        buyer=request.user,
+                        seller=seller,  # Seller object
+                        product=product,
+                        card=buyer_card,
+                        quantity=item.quantity,
+                        total_price=product.price * item.quantity
+                    )
+
+                # Clear the cart after successful checkout
+                cart_items.delete()
+                logger.info("All cart items deleted.")
+
+            messages.success(request, "Purchase successful! Your funds have been deducted, and the seller has been credited.")
+            logger.info("Redirecting to profile_user.")
+
+        except Exception as e:
+            logger.error(f"Checkout failed: {str(e)}")
+            messages.error(request, f"Checkout error: {str(e)}")
+            return redirect('cart')
 
     messages.success(request, "Purchase successful! Your funds have been deducted, and the seller has been credited.")
 
