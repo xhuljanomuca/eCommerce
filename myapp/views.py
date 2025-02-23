@@ -111,30 +111,15 @@ def product_detail(request, product_id):
 @login_required
 def product_create(request):
     if request.method == 'POST':
-        form = ProductForm(request.POST)
-        files = request.FILES.getlist('images')
-
+        form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
             product = form.save(commit=False)
-            
-            # Ensure the category exists
-            if not product.category:
-                messages.error(request, "Please select a valid category.")
-                return redirect('add_product')
-
-            # Assign the logged-in user as the seller
-            product.seller = request.user  
-
-            #save the product
+            product.seller = request.user
             product.save()
-
-            # Save images
-            for file in files:
-                Photo.objects.create(product=product, image=file)
-
             messages.success(request, "Product added successfully!")
             return redirect('dashboard')
-
+        else:
+            messages.error(request, "Please correct the errors below.")
     else:
         form = ProductForm()
 
