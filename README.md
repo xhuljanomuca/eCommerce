@@ -5,8 +5,8 @@ This is a full-featured **eCommerce platform** built with **Django**. The projec
 
 ## ✨ Features
 - 🔐 **User Authentication:** Register, login, logout, and profile management.
-- 🏪 **Product Management:** Add, edit, delete, and categorize products.
-- 📷 **Image Uploads:** Supports multiple product images.
+- 🏪 **Product Management:** Add, edit, and categorize products.
+- 📷 **Image Uploads:** Supports product image.
 - 🛍 **Cart & Checkout:** Add to cart, adjust quantity, and proceed to checkout.
 - 💳 **Payments:** Simulated payment system with user wallet.
 - 📦 **Order Management:** Tracks orders and seller earnings.
